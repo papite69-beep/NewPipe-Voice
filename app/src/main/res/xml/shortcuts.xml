@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Google Assistant in-app search. Google currently documents GET_THING invocation
+         only for en-US and pt-BR; French invocation is not yet supported by this BII. -->
+    <capability android:name="actions.intent.GET_THING">
+        <intent
+            android:targetPackage="org.schabi.newpipe"
+            android:targetClass="org.schabi.newpipe.MainActivity">
+            <parameter
+                android:name="thing.name"
+                android:key="patlep_voice_query" />
+        </intent>
+    </capability>
+</shortcuts>
