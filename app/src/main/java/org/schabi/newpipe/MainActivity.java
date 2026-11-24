@@ -566,12 +566,11 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "onNewIntent() called with: intent = [" + intent + "]");
         }
         if (intent != null) {
-            // Return if launched from a launcher (e.g. Nova Launcher, Pixel Launcher ...)
-            // to not destroy the already created backstack
-            final String action = intent.getAction();
-            if ((action != null && action.equals(Intent.ACTION_MAIN))
-                    && intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
-                // A launcher/Assistant re-open should enter voice search as well.
+            // Generic app launches from launchers and voice assistants commonly use
+            // ACTION_MAIN, but do not always include CATEGORY_LAUNCHER.
+            // Treat every ACTION_MAIN re-launch as a request for voice search.
+            if (Intent.ACTION_MAIN.equals(intent.getAction())) {
+                setIntent(intent);
                 NavigationHelper.openSearchFragment(
                         getSupportFragmentManager(),
                         ServiceHelper.getSelectedServiceId(this),
