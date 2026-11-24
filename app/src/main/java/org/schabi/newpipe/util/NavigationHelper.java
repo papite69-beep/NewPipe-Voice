@@ -380,8 +380,15 @@ public final class NavigationHelper {
 
     public static void openSearchFragment(final FragmentManager fragmentManager,
                                           final int serviceId, final String searchString) {
+        openSearchFragment(fragmentManager, serviceId, searchString, false);
+    }
+
+    public static void openSearchFragment(final FragmentManager fragmentManager,
+                                          final int serviceId, final String searchString,
+                                          final boolean startVoiceSearch) {
         defaultTransaction(fragmentManager)
-                .replace(R.id.fragment_holder, SearchFragment.getInstance(serviceId, searchString))
+                .replace(R.id.fragment_holder,
+                        SearchFragment.getInstance(serviceId, searchString, startVoiceSearch))
                 .addToBackStack(SEARCH_FRAGMENT_TAG)
                 .commit();
     }
