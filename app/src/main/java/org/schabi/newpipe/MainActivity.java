@@ -764,7 +764,8 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "initFragments() called");
         }
         StateSaver.clearStateFiles();
-        if (getIntent() != null && getIntent().hasExtra(Constants.KEY_LINK_TYPE)) {
+        if (getIntent() != null && (getIntent().hasExtra(Constants.KEY_LINK_TYPE)
+                || getIntent().hasExtra("patlep_voice_query"))) {
             // When user watch a video inside popup and then tries to open the video in main player
             // while the app is closed he will see a blank fragment on place of kiosk.
             // Let's open it first
@@ -806,6 +807,16 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleIntent(final Intent intent) {
         try {
+            // Google Assistant App Actions: open NewPipe search with the spoken query.
+            final String assistantQuery = intent.getStringExtra("patlep_voice_query");
+            if (assistantQuery != null && !assistantQuery.trim().isEmpty()) {
+                NavigationHelper.openSearchFragment(
+                        getSupportFragmentManager(),
+                        ServiceHelper.getSelectedServiceId(this),
+                        assistantQuery.trim());
+                return;
+            }
+
             if (DEBUG) {
                 Log.d(TAG, "handleIntent() called with: intent = [" + intent + "]");
             }
