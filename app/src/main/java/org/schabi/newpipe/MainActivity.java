@@ -571,6 +571,12 @@ public class MainActivity extends AppCompatActivity {
             final String action = intent.getAction();
             if ((action != null && action.equals(Intent.ACTION_MAIN))
                     && intent.hasCategory(Intent.CATEGORY_LAUNCHER)) {
+                // A launcher/Assistant re-open should enter voice search as well.
+                NavigationHelper.openSearchFragment(
+                        getSupportFragmentManager(),
+                        ServiceHelper.getSelectedServiceId(this),
+                        "",
+                        true);
                 return;
             }
         }
