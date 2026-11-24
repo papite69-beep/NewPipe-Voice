@@ -252,14 +252,6 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         showSearchOnStart();
         initSearchListeners();
 
-        if (startVoiceSearchOnStart && !voiceSearchStarted) {
-            voiceSearchStarted = true;
-            searchVoice.post(() -> {
-                if (searchVoice != null && isAdded()) {
-                    searchVoice.performClick();
-                }
-            });
-        }
     }
 
     private void updateService() {
@@ -305,6 +297,18 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
         if (suggestionDisposable == null || suggestionDisposable.isDisposed()) {
             initSuggestionObserver();
+        }
+
+        if (startVoiceSearchOnStart && !voiceSearchStarted && searchVoice != null) {
+            // Wait until the fragment is resumed and its view is attached before
+            // launching the external speech-recognition activity.
+            searchVoice.post(() -> {
+                if (isAdded() && isResumed() && searchVoice != null
+                        && searchVoice.isAttachedToWindow() && !voiceSearchStarted) {
+                    voiceSearchStarted = true;
+                    searchVoice.performClick();
+                }
+            });
         }
 
         if (!TextUtils.isEmpty(searchString)) {
