@@ -775,7 +775,15 @@ public class MainActivity extends AppCompatActivity {
 
             handleIntent(getIntent());
         } else {
-            NavigationHelper.gotoMainFragment(getSupportFragmentManager());
+            // PATLEP NewPipe Voice: start voice input when the app is launched.
+            // This also lets Google Assistant's regular "open app" command enter
+            // directly into voice search, even when App Actions are unavailable
+            // in the device language.
+            NavigationHelper.openSearchFragment(
+                    getSupportFragmentManager(),
+                    ServiceHelper.getSelectedServiceId(this),
+                    "",
+                    true);
         }
     }
 
