@@ -179,6 +179,8 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     private View searchVoice;
 
     private boolean suggestionsPanelVisible = false;
+    private boolean startVoiceSearchOnStart = false;
+    private boolean voiceSearchStarted = false;
 
     /*////////////////////////////////////////////////////////////////////////*/
 
@@ -189,8 +191,14 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     private TextWatcher textWatcher;
 
     public static SearchFragment getInstance(final int serviceId, final String searchString) {
+        return getInstance(serviceId, searchString, false);
+    }
+
+    public static SearchFragment getInstance(final int serviceId, final String searchString,
+                                             final boolean startVoiceSearch) {
         final SearchFragment searchFragment = new SearchFragment();
         searchFragment.setQuery(serviceId, searchString, new String[0], "");
+        searchFragment.startVoiceSearchOnStart = startVoiceSearch;
 
         if (!TextUtils.isEmpty(searchString)) {
             searchFragment.setSearchOnResume();
@@ -243,6 +251,15 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         }
         showSearchOnStart();
         initSearchListeners();
+
+        if (startVoiceSearchOnStart && !voiceSearchStarted) {
+            voiceSearchStarted = true;
+            searchVoice.post(() -> {
+                if (searchVoice != null && isAdded()) {
+                    searchVoice.performClick();
+                }
+            });
+        }
     }
 
     private void updateService() {
