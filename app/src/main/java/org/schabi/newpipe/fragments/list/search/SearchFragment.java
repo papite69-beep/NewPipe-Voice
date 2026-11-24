@@ -8,11 +8,13 @@ import static java.util.Arrays.asList;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.text.Editable;
 import android.text.Html;
 import android.text.Layout;
@@ -106,6 +108,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
      * (local ones will be fetched regardless of the length)
      */
     private static final int THRESHOLD_NETWORK_SUGGESTION = 1;
+    private static final int VOICE_SEARCH_REQUEST = 974;
 
     /**
      * How much time have to pass without emitting a item (i.e. the user stop typing)
@@ -173,6 +176,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
     private View searchToolbarContainer;
     private EditText searchEditText;
     private View searchClear;
+    private View searchVoice;
 
     private boolean suggestionsPanelVisible = false;
 
@@ -342,7 +346,20 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        if (requestCode == ReCaptchaActivity.RECAPTCHA_REQUEST) {
+        if (requestCode == VOICE_SEARCH_REQUEST) {
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                final ArrayList<String> results =
+                        data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                if (results != null && !results.isEmpty()) {
+                    final String spokenText = results.get(0).trim();
+                    if (!spokenText.isEmpty()) {
+                        searchEditText.setText(spokenText);
+                        searchEditText.setSelection(spokenText.length());
+                        search(spokenText, contentFilter, sortFilter);
+                    }
+                }
+            }
+        } else if (requestCode == ReCaptchaActivity.RECAPTCHA_REQUEST) {
             if (resultCode == Activity.RESULT_OK
                     && !TextUtils.isEmpty(searchString)) {
                 search(searchString, contentFilter, sortFilter);
@@ -388,6 +405,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
         searchToolbarContainer = activity.findViewById(R.id.toolbar_search_container);
         searchEditText = searchToolbarContainer.findViewById(R.id.toolbar_search_edit_text);
         searchClear = searchToolbarContainer.findViewById(R.id.toolbar_search_clear);
+        searchVoice = searchToolbarContainer.findViewById(R.id.toolbar_search_voice);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -572,6 +590,20 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
 
         TooltipCompat.setTooltipText(searchClear, getString(R.string.clear));
 
+        searchVoice.setOnClickListener(v -> {
+            final Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "fr-FR");
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Prononce ta recherche");
+            try {
+                startActivityForResult(intent, VOICE_SEARCH_REQUEST);
+            } catch (final ActivityNotFoundException e) {
+                ErrorUtil.showUiErrorSnackbar(this, "Voice search is unavailable", e);
+            }
+        });
+        TooltipCompat.setTooltipText(searchVoice, "Recherche vocale");
+
         searchEditText.setOnClickListener(v -> {
             if (DEBUG) {
                 Log.d(TAG, "onClick() called with: v = [" + v + "]");
@@ -672,6 +704,7 @@ public class SearchFragment extends BaseListFragment<SearchInfo, ListExtractor.I
             Log.d(TAG, "unsetSearchListeners() called");
         }
         searchClear.setOnClickListener(null);
+        searchVoice.setOnClickListener(null);
         searchClear.setOnLongClickListener(null);
         searchEditText.setOnClickListener(null);
         searchEditText.setOnFocusChangeListener(null);
